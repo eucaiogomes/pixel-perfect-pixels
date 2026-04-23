@@ -97,17 +97,6 @@ function Questionario() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
           {/* Question card */}
           <main className="relative">
-            {/* Floating advance button — centered vertically on the left */}
-            {isAnswered && (
-              <button
-                onClick={goNext}
-                className="hidden md:flex fixed left-6 top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-primary text-primary-foreground items-center justify-center shadow-lg hover:bg-primary/90 transition animate-in fade-in slide-in-from-left-2"
-                aria-label="Próxima"
-              >
-                <ChevronRight className="h-6 w-6" />
-              </button>
-            )}
-
             <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
               Questão {current + 1} de {total}
             </div>
@@ -162,18 +151,22 @@ function Questionario() {
               <kbd className="px-1.5 py-0.5 rounded border bg-muted">→</kbd> para avançar.
             </p>
 
-            {/* Mobile advance button */}
-            {isAnswered && (
-              <div className="mt-8 flex md:hidden justify-center">
-                <button
-                  onClick={goNext}
-                  className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 transition"
-                  aria-label="Próxima"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </div>
-            )}
+            {/* Advance button — original position (bottom right) */}
+            <div className="mt-10 flex items-center justify-end gap-4">
+              {!isAnswered && (
+                <span className="text-sm text-muted-foreground">
+                  Selecione uma alternativa para continuar
+                </span>
+              )}
+              <button
+                onClick={goNext}
+                disabled={!isAnswered}
+                className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                aria-label="Próxima"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
           </main>
 
           {/* Side panel */}
