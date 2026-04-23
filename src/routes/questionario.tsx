@@ -97,6 +97,17 @@ function Questionario() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
           {/* Question card */}
           <main className="relative">
+            {/* Floating advance button — centered vertically on the left */}
+            {isAnswered && (
+              <button
+                onClick={goNext}
+                className="hidden md:flex fixed left-6 top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-primary text-primary-foreground items-center justify-center shadow-lg hover:bg-primary/90 transition animate-in fade-in slide-in-from-left-2"
+                aria-label="Próxima"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            )}
+
             <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
               Questão {current + 1} de {total}
             </div>
@@ -148,29 +159,21 @@ function Questionario() {
             <p className="mt-4 text-xs text-muted-foreground">
               Dica: use as teclas <kbd className="px-1.5 py-0.5 rounded border bg-muted">1</kbd>–
               <kbd className="px-1.5 py-0.5 rounded border bg-muted">5</kbd> para responder e{" "}
-              <kbd className="px-1.5 py-0.5 rounded border bg-muted">←</kbd>{" "}
-              <kbd className="px-1.5 py-0.5 rounded border bg-muted">→</kbd> para navegar.
+              <kbd className="px-1.5 py-0.5 rounded border bg-muted">→</kbd> para avançar.
             </p>
 
-            {/* Floating nav */}
-            <div className="mt-10 flex items-center justify-between">
-              <button
-                onClick={() => setCurrent(current - 1)}
-                disabled={current === 0}
-                className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed transition"
-                aria-label="Anterior"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => setCurrent(current + 1)}
-                disabled={current === total - 1}
-                className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed transition"
-                aria-label="Próxima"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
+            {/* Mobile advance button */}
+            {isAnswered && (
+              <div className="mt-8 flex md:hidden justify-center">
+                <button
+                  onClick={goNext}
+                  className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 transition"
+                  aria-label="Próxima"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+            )}
           </main>
 
           {/* Side panel */}
@@ -181,51 +184,6 @@ function Questionario() {
           </aside>
         </div>
       </div>
-
-      {/* Review dialog */}
-      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Revisar respostas</DialogTitle>
-            <DialogDescription>
-              Respondidas: <strong>{answeredCount}</strong> de {total} ·{" "}
-              <span className="text-muted-foreground">
-                Por responder: {total - answeredCount}
-              </span>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full bg-primary transition-all"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <DialogFooter className="gap-2 sm:gap-2">
-            {answeredCount < total && (
-              <Button variant="outline" onClick={goToFirstUnanswered}>
-                Ir para a primeira não respondida
-              </Button>
-            )}
-            <Button
-              onClick={submit}
-              className="bg-navy text-navy-foreground hover:bg-navy/90"
-            >
-              Submeter
-            </Button>
-          </DialogFooter>
-          {answeredCount === 0 && (
-            <button
-              onClick={() => {
-                reset();
-                setReviewOpen(false);
-              }}
-              className="text-xs text-muted-foreground hover:text-foreground underline self-start"
-            >
-              Limpar respostas
-            </button>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
