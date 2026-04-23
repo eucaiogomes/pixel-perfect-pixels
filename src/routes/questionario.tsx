@@ -87,12 +87,9 @@ function Questionario() {
             </Sheet>
             <span className="text-sm font-semibold text-navy hidden sm:inline">COPSOQ II</span>
           </div>
-          <Button
-            onClick={() => setReviewOpen(true)}
-            className="bg-navy text-navy-foreground hover:bg-navy/90 h-9"
-          >
-            Revisar
-          </Button>
+          <span className="text-xs text-muted-foreground">
+            {answeredCount}/{total}
+          </span>
         </div>
       </header>
 
