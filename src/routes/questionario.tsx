@@ -20,20 +20,24 @@ export const Route = createFileRoute("/questionario")({
 function Questionario() {
   const navigate = useNavigate();
   const total = QUESTIONS.length;
-  const { answers, current, setAnswer, setCurrent, reset } = useSurveyState(total);
-  const [reviewOpen, setReviewOpen] = useState(false);
-  const [autoAdvance] = useState(true);
+  const { answers, current, setAnswer, setCurrent } = useSurveyState(total);
 
   const q = QUESTIONS[current];
   const options = SCALES[q.scale];
   const answeredCount = Object.keys(answers).length;
   const progress = Math.round((answeredCount / total) * 100);
+  const isAnswered = answers[q.id] !== undefined;
+
+  const goNext = () => {
+    if (current < total - 1) {
+      setCurrent(current + 1);
+    } else {
+      navigate({ to: "/obrigado" });
+    }
+  };
 
   const select = (value: number) => {
     setAnswer(q.id, value);
-    if (autoAdvance && current < total - 1) {
-      setTimeout(() => setCurrent(current + 1), 220);
-    }
   };
 
   // Keyboard support
@@ -43,28 +47,13 @@ function Questionario() {
       if (e.key >= "1" && e.key <= "5") {
         const v = parseInt(e.key, 10);
         if (v <= options.length) select(v);
-      } else if (e.key === "ArrowLeft" && current > 0) {
-        setCurrent(current - 1);
-      } else if (e.key === "ArrowRight" && current < total - 1) {
-        setCurrent(current + 1);
+      } else if (e.key === "ArrowRight" && answers[q.id] !== undefined) {
+        goNext();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   });
-
-  const goToFirstUnanswered = () => {
-    const idx = QUESTIONS.findIndex((qq) => answers[qq.id] === undefined);
-    if (idx >= 0) {
-      setCurrent(idx);
-      setReviewOpen(false);
-    }
-  };
-
-  const submit = () => {
-    setReviewOpen(false);
-    navigate({ to: "/obrigado" });
-  };
 
   const Pagination = (
     <PaginationPanel
