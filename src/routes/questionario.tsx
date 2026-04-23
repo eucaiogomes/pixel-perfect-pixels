@@ -1,15 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Check, Menu } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { ChevronRight, Check, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { QUESTIONS, SCALES } from "@/lib/copsoq-questions";
@@ -28,20 +20,24 @@ export const Route = createFileRoute("/questionario")({
 function Questionario() {
   const navigate = useNavigate();
   const total = QUESTIONS.length;
-  const { answers, current, setAnswer, setCurrent, reset } = useSurveyState(total);
-  const [reviewOpen, setReviewOpen] = useState(false);
-  const [autoAdvance] = useState(true);
+  const { answers, current, setAnswer, setCurrent } = useSurveyState(total);
 
   const q = QUESTIONS[current];
   const options = SCALES[q.scale];
   const answeredCount = Object.keys(answers).length;
   const progress = Math.round((answeredCount / total) * 100);
+  const isAnswered = answers[q.id] !== undefined;
+
+  const goNext = () => {
+    if (current < total - 1) {
+      setCurrent(current + 1);
+    } else {
+      navigate({ to: "/obrigado" });
+    }
+  };
 
   const select = (value: number) => {
     setAnswer(q.id, value);
-    if (autoAdvance && current < total - 1) {
-      setTimeout(() => setCurrent(current + 1), 220);
-    }
   };
 
   // Keyboard support
@@ -51,28 +47,13 @@ function Questionario() {
       if (e.key >= "1" && e.key <= "5") {
         const v = parseInt(e.key, 10);
         if (v <= options.length) select(v);
-      } else if (e.key === "ArrowLeft" && current > 0) {
-        setCurrent(current - 1);
-      } else if (e.key === "ArrowRight" && current < total - 1) {
-        setCurrent(current + 1);
+      } else if (e.key === "ArrowRight" && answers[q.id] !== undefined) {
+        goNext();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   });
-
-  const goToFirstUnanswered = () => {
-    const idx = QUESTIONS.findIndex((qq) => answers[qq.id] === undefined);
-    if (idx >= 0) {
-      setCurrent(idx);
-      setReviewOpen(false);
-    }
-  };
-
-  const submit = () => {
-    setReviewOpen(false);
-    navigate({ to: "/obrigado" });
-  };
 
   const Pagination = (
     <PaginationPanel
@@ -106,12 +87,9 @@ function Questionario() {
             </Sheet>
             <span className="text-sm font-semibold text-navy hidden sm:inline">COPSOQ II</span>
           </div>
-          <Button
-            onClick={() => setReviewOpen(true)}
-            className="bg-navy text-navy-foreground hover:bg-navy/90 h-9"
-          >
-            Revisar
-          </Button>
+          <span className="text-xs text-muted-foreground">
+            {answeredCount}/{total}
+          </span>
         </div>
       </header>
 
@@ -119,6 +97,17 @@ function Questionario() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
           {/* Question card */}
           <main className="relative">
+            {/* Floating advance button — centered vertically on the left */}
+            {isAnswered && (
+              <button
+                onClick={goNext}
+                className="hidden md:flex fixed left-6 top-1/2 -translate-y-1/2 z-20 h-14 w-14 rounded-full bg-primary text-primary-foreground items-center justify-center shadow-lg hover:bg-primary/90 transition animate-in fade-in slide-in-from-left-2"
+                aria-label="Próxima"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            )}
+
             <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
               Questão {current + 1} de {total}
             </div>
@@ -170,29 +159,21 @@ function Questionario() {
             <p className="mt-4 text-xs text-muted-foreground">
               Dica: use as teclas <kbd className="px-1.5 py-0.5 rounded border bg-muted">1</kbd>–
               <kbd className="px-1.5 py-0.5 rounded border bg-muted">5</kbd> para responder e{" "}
-              <kbd className="px-1.5 py-0.5 rounded border bg-muted">←</kbd>{" "}
-              <kbd className="px-1.5 py-0.5 rounded border bg-muted">→</kbd> para navegar.
+              <kbd className="px-1.5 py-0.5 rounded border bg-muted">→</kbd> para avançar.
             </p>
 
-            {/* Floating nav */}
-            <div className="mt-10 flex items-center justify-between">
-              <button
-                onClick={() => setCurrent(current - 1)}
-                disabled={current === 0}
-                className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed transition"
-                aria-label="Anterior"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => setCurrent(current + 1)}
-                disabled={current === total - 1}
-                className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed transition"
-                aria-label="Próxima"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
+            {/* Mobile advance button */}
+            {isAnswered && (
+              <div className="mt-8 flex md:hidden justify-center">
+                <button
+                  onClick={goNext}
+                  className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 transition"
+                  aria-label="Próxima"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+            )}
           </main>
 
           {/* Side panel */}
@@ -203,51 +184,6 @@ function Questionario() {
           </aside>
         </div>
       </div>
-
-      {/* Review dialog */}
-      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Revisar respostas</DialogTitle>
-            <DialogDescription>
-              Respondidas: <strong>{answeredCount}</strong> de {total} ·{" "}
-              <span className="text-muted-foreground">
-                Por responder: {total - answeredCount}
-              </span>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full bg-primary transition-all"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <DialogFooter className="gap-2 sm:gap-2">
-            {answeredCount < total && (
-              <Button variant="outline" onClick={goToFirstUnanswered}>
-                Ir para a primeira não respondida
-              </Button>
-            )}
-            <Button
-              onClick={submit}
-              className="bg-navy text-navy-foreground hover:bg-navy/90"
-            >
-              Submeter
-            </Button>
-          </DialogFooter>
-          {answeredCount === 0 && (
-            <button
-              onClick={() => {
-                reset();
-                setReviewOpen(false);
-              }}
-              className="text-xs text-muted-foreground hover:text-foreground underline self-start"
-            >
-              Limpar respostas
-            </button>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
